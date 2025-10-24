@@ -61,7 +61,7 @@ const Case = {
 // 🧠 Prompt Utilities
 // -----------------------------
 const ask = async (msg: string, def = ""): Promise<string> => {
-	console.write(`${msg}${def ? " [" + def + "]" : ""}: `);
+	console.write(`${msg}${def ? ` [${def}]` : ""}: `);
 	const iterator = console[Symbol.asyncIterator]();
 	const result = await iterator.next();
 	return result.value?.trim() || def;
@@ -83,12 +83,8 @@ console.log("🚀 Convex Component Setup\n");
 const name = await ask("Enter your component name (e.g. document search)", dir);
 if (!name) throw new Error("Component name is required.");
 
-const pkg = await ask(
-	"NPM package name (e.g. @samhoque/" + Case.kebab(name) + ")",
-);
-const repo = await ask(
-	"GitHub repository (e.g. samhoque/" + Case.kebab(name) + ")",
-);
+const pkg = await ask(`NPM package name (e.g. @samhoque/${Case.kebab(name)})`);
+const repo = await ask(`GitHub repository (e.g. samhoque/${Case.kebab(name)})`);
 if (!pkg || !repo)
 	throw new Error("NPM package and repository names are required.");
 
@@ -115,7 +111,7 @@ const pkgFile = Bun.file("package.json");
 const pkgJson = await pkgFile.json();
 if (pkgJson.name !== pkg) {
 	pkgJson.name = pkg;
-	await Bun.write("package.json", JSON.stringify(pkgJson, null, 2) + "\n");
+	await Bun.write("package.json", `${JSON.stringify(pkgJson, null, 2)}\n`);
 	console.log(`📦 Updated package.json name → ${pkg}`);
 }
 
