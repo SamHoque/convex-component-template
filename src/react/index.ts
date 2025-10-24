@@ -14,15 +14,15 @@ import { useMutation, useQuery } from "convex/react";
  * @example
  * ```tsx
  * // In your convex/example.ts, create the API wrapper:
- * import { ShardedCounter } from "@slapinc/convex-component-template";
+ * import { ShardedCounter } from "@samhoque/convex-component-template";
  * import { components } from "./_generated/api";
  *
- * const shardedCounter = new ShardedCounter(components.acme);
+ * const shardedCounter = new ShardedCounter(components.shardedCounter);
  * export const { add, count } = shardedCounter.api();
  *
  * // Then in your React component:
  * import { api } from "../convex/_generated/api";
- * import { useShardedCounter } from "@slapinc/convex-component-template/react";
+ * import { useShardedCounter } from "@samhoque/convex-component-template/react";
  *
  * export function MyComponent() {
  *   const { count, add, isLoading } = useShardedCounter(api.example, "accomplishments");

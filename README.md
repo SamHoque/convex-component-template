@@ -6,7 +6,32 @@ A modern template for building reusable [Convex components](https://www.convex.d
 
 > **Note:** Replace `OWNER/REPO` in the badge above with your GitHub username/organization and repository name once you set up your repository.
 
-## Quickstart
+## Getting Started
+
+### 1. Rename Your Component
+
+After cloning this template, run the rename script to customize it for your component:
+
+```bash
+bun rename.ts
+```
+
+The script will:
+- Prompt you for your component name (e.g., "document search", "rate limiter")
+- Ask for your NPM package name (default: `@samhoque/your-component-name`)
+- Ask for your GitHub repository (default: `samhoque/your-component-name`)
+- Automatically generate all case variants (PascalCase, camelCase, kebab-case, etc.)
+- Replace all template placeholders across the entire codebase
+- Update `package.json` with your package name
+- Optionally delete itself when done
+
+**What gets renamed:**
+- Package name in `package.json`
+- All imports and references throughout the codebase
+- Component class names, function names, and identifiers
+- Documentation examples in README and comments
+
+### 2. Install Dependencies & Start Development
 
 ```bash
 bun install
@@ -123,10 +148,10 @@ This project uses [pkg.pr.new](https://github.com/stackblitz-labs/pkg.pr.new) fo
 **Using preview packages:**
 ```bash
 # Install from a specific commit (Bun)
-bun add https://pkg.pr.new/OWNER/REPO/@slapinc/convex-component-template@COMMIT_SHA
+bun add https://pkg.pr.new/OWNER/REPO/@samhoque/convex-component-template@COMMIT_SHA
 
 # Or with npm
-npm i https://pkg.pr.new/OWNER/REPO/@slapinc/convex-component-template@COMMIT_SHA
+npm i https://pkg.pr.new/OWNER/REPO/@samhoque/convex-component-template@COMMIT_SHA
 ```
 
 Preview URLs will be posted as comments on your pull requests automatically.
@@ -141,7 +166,7 @@ The component is defined in `src/component/convex.config.ts`:
 import { defineComponent } from "convex/server";
 import { api } from "./_generated/api";
 
-const component = defineComponent("acme"); // Change "acme" to your component name
+const component = defineComponent("shardedCounter"); // Change "shardedCounter" to your component name
 component.export(api, { greet: api.lib.greet });
 export default component;
 ```
@@ -452,7 +477,7 @@ All first-party components are open source:
 
 - **Generated files**: Never edit `_generated/` directories
 - **Test location**: Always place tests in `test/component/` (not `src/component/`)
-- **Component name**: Change `"acme"` in convex.config.ts to your component name
+- **Component name**: Change `"shardedCounter"` in convex.config.ts to your component name
 - **Live reloading**: Enabled via `--live-component-sources` flag
 - **Peer dependencies**: Component uses the app's Convex installation
 

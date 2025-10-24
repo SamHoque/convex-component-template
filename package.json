@@ -1,5 +1,5 @@
 {
-	"name": "@slapinc/convex-component-template",
+	"name": "@samhoque/convex-component-template",
 	"module": "index.ts",
 	"type": "module",
 	"private": true,

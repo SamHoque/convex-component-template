@@ -1,4 +1,4 @@
-import { useShardedCounter } from "@slapinc/convex-component-template/react";
+import { useShardedCounter } from "@samhoque/convex-component-template/react";
 import { api } from "../convex/_generated/api";
 import "./index.css";
 

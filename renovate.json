@@ -1,0 +1,32 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": ["config:best-practices"],
+	"schedule": ["* 0-4 * * 1"],
+	"timezone": "America/Los_Angeles",
+	"prConcurrentLimit": 1,
+	"packageRules": [
+		{
+			"groupName": "Convex packages",
+			"matchPackagePatterns": ["^convex"],
+			"automerge": false,
+			"description": "Keep Convex packages together but require manual review"
+		},
+		{
+			"groupName": "Routine updates",
+			"matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+			"excludePackagePatterns": ["^convex"],
+			"automerge": true
+		},
+		{
+			"groupName": "Major updates",
+			"matchUpdateTypes": ["major"],
+			"excludePackagePatterns": ["^convex"],
+			"automerge": false
+		},
+		{
+			"matchDepTypes": ["devDependencies"],
+			"excludePackagePatterns": ["^convex"],
+			"automerge": true
+		}
+	]
+}
