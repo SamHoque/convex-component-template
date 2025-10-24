@@ -1,6 +1,10 @@
 # 🔨 Convex Component Template
 
+[![pkg.pr.new](https://pkg.pr.new/badge/OWNER/REPO)](https://pkg.pr.new/~/OWNER/REPO)
+
 A modern template for building reusable [Convex components](https://www.convex.dev/components) with Bun, TypeScript, and comprehensive testing.
+
+> **Note:** Replace `OWNER/REPO` in the badge above with your GitHub username/organization and repository name once you set up your repository.
 
 ## Quickstart
 
@@ -13,7 +17,7 @@ bun run dev:backend
 Then in another terminal:
 ```bash
 cd example
-npm run dev  # or your preferred frontend dev server
+bun run dev
 ```
 
 ## What are Convex Components?
@@ -80,6 +84,52 @@ bun run format               # Format code with Biome
 bun run check                # Run both lint and format checks
 bun run check:fix            # Auto-fix all issues
 ```
+
+### Git Hooks (Lefthook)
+
+This project uses [Lefthook](https://github.com/evilmartians/lefthook) for Git hooks. Hooks are automatically installed when you run `bun install`.
+
+**Pre-commit hook:**
+- Runs Biome check on staged files
+- Auto-fixes issues and stages the changes
+- Prevents commits with linting/formatting errors
+
+To skip hooks (not recommended):
+```bash
+git commit --no-verify
+```
+
+### CI/CD
+
+The project includes a GitHub Actions workflow that runs on every push and pull request:
+
+**Workflow: Test and lint** (`.github/workflows/test-and-lint.yml`)
+- Installs dependencies with Bun
+- Builds the project
+- Publishes preview packages with `pkg.pr.new`
+- Runs all tests
+- Runs linting checks
+
+The workflow ensures code quality and prevents broken builds from being merged.
+
+#### pkg.pr.new Setup
+
+This project uses [pkg.pr.new](https://github.com/stackblitz-labs/pkg.pr.new) for continuous package previews. Each commit and PR automatically generates a preview release that can be installed without publishing to npm.
+
+**One-time setup required:**
+1. Install the [pkg.pr.new GitHub App](https://github.com/apps/pkg-pr-new) on your repository
+2. Once installed, the workflow will automatically publish preview packages on every commit/PR
+
+**Using preview packages:**
+```bash
+# Install from a specific commit (Bun)
+bun add https://pkg.pr.new/OWNER/REPO/@slapinc/convex-component-template@COMMIT_SHA
+
+# Or with npm
+npm i https://pkg.pr.new/OWNER/REPO/@slapinc/convex-component-template@COMMIT_SHA
+```
+
+Preview URLs will be posted as comments on your pull requests automatically.
 
 ## Component Architecture
 
@@ -355,9 +405,10 @@ bun install ../path/to/component/your-component-0.1.0.tgz
 
 ### Publishing
 
-```bash
-npm publish  # or bun publish when available
-```
+This package is currently marked as `private` in package.json. To publish to npm:
+
+1. Remove `"private": true` from package.json
+2. Run: `bun publish` (or `npm publish` if bun publish is not yet available)
 
 ## Dashboard and Deployment
 
