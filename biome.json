@@ -1,12 +1,13 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.2.7/schema.json",
+	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
 	"vcs": {
 		"enabled": false,
 		"clientKind": "git",
 		"useIgnoreFile": false
 	},
 	"files": {
-		"ignoreUnknown": false
+		"ignoreUnknown": false,
+		"includes": ["**", "!**/_generated", "!dist"]
 	},
 	"formatter": {
 		"enabled": true,
@@ -29,6 +30,16 @@
 			"source": {
 				"organizeImports": "on"
 			}
+		}
+	},
+	"json": {
+		"parser": {
+			"allowComments": true
+		}
+	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
 		}
 	}
 }

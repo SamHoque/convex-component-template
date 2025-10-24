@@ -1,106 +1,134 @@
+# CLAUDE.md
 
-Default to using Bun instead of Node.js.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-- Use `bun <file>` instead of `node <file>` or `ts-node <file>`
-- Use `bun test` instead of `jest` or `vitest`
-- Use `bun build <file.html|file.ts|file.css>` instead of `webpack` or `esbuild`
-- Use `bun install` instead of `npm install` or `yarn install` or `pnpm install`
-- Use `bun run <script>` instead of `npm run <script>` or `yarn run <script>` or `pnpm run <script>`
-- Bun automatically loads .env, so don't use dotenv.
+## Project Overview
 
-## APIs
+This is a **Convex component template** for building reusable Convex components. It uses:
+- **Bun** for package management, testing, and development
+- **Biome** for linting and formatting
+- **convex-test** for testing Convex functions
+- TypeScript with strict mode enabled
 
-- `Bun.serve()` supports WebSockets, HTTPS, and routes. Don't use `express`.
-- `bun:sqlite` for SQLite. Don't use `better-sqlite3`.
-- `Bun.redis` for Redis. Don't use `ioredis`.
-- `Bun.sql` for Postgres. Don't use `pg` or `postgres.js`.
-- `WebSocket` is built-in. Don't use `ws`.
-- Prefer `Bun.file` over `node:fs`'s readFile/writeFile
-- Bun.$`ls` instead of execa.
+## Key Commands
 
-## Testing
+### Development
+```sh
+bun run dev:backend          # Start Convex dev server with live component sources and typechecking
+```
 
-Use `bun test` to run tests.
+### Testing
+```sh
+bun test                     # Run all tests
+bun test --watch             # Watch mode for continuous testing
+bun test --coverage          # Generate code coverage reports
+bun test --bail              # Stop after first failure
+bun test -t "pattern"        # Filter tests by name pattern
+CLAUDECODE=1 bun test        # AI-friendly quiet output (only shows failures)
+```
 
-```ts#index.test.ts
+### Linting and Formatting
+```sh
+bun run lint                 # Lint the codebase (Biome)
+bun run lint:fix             # Auto-fix linting issues
+bun run format               # Format code with Biome
+bun run check                # Run both lint and format checks
+bun run check:fix            # Auto-fix both lint and format issues
+```
+
+## Project Structure
+
+```
+src/
+  component/               # The Convex component source code
+    convex.config.ts       # Component configuration (exported via package.json)
+    schema.ts              # Convex schema definition
+    lib.ts                 # Component functions (queries, mutations)
+    _generated/            # Auto-generated Convex types (gitignored)
+
+test/
+  component/               # Component tests (separate from source to avoid bundling)
+    setup.test.ts          # Test setup with module auto-discovery
+    *.test.ts              # Unit tests for the component
+
+example/
+  convex/                  # Example app that uses the component
+    convex.config.ts       # Example app configuration that imports the component
+    schema.ts              # Example app schema
+    _generated/            # Auto-generated Convex types (gitignored)
+```
+
+## Architecture
+
+### Convex Component Pattern
+This project follows the **Convex component architecture**:
+
+1. **Component Definition** (`src/component/convex.config.ts`):
+   - Defines the component with `defineComponent("acme")`
+   - Exported via package.json `exports["./convex.config"]` field with `@convex-dev/component-source` condition
+
+2. **Component Usage** (`example/convex/convex.config.ts`):
+   - Example app imports the component: `import component from "@slapinc/convex-component-template/convex.config"`
+   - Uses `defineApp()` and `app.use(component)` to mount the component
+
+3. **Package Exports** (`package.json`):
+   - `"./convex.config"` export points to `src/component/convex.config.ts` (component source)
+   - Uses `@convex-dev/component-source` condition for dev mode with live reloading
+
+### Testing Pattern
+This project uses `convex-test` with Bun's test runner. **Tests are kept separate from the component source** to prevent Convex from trying to bundle them during development.
+
+1. **Test Setup** (`test/component/setup.test.ts`):
+   - Auto-discovers all `.ts` files from `src/component/` using `Bun.Glob`
+   - Creates a `modules` map for convex-test that includes the component files
+   - Exports a `convexTest()` helper function
+   - Located in `test/` directory to avoid bundling by Convex
+
+2. **Preloading** (`bunfig.toml`):
+   - Configures Bun to preload `test/component/setup.test.ts`
+   - Ignores `.js` files from coverage
+
+3. **Writing Tests**:
+   - Place test files in `test/component/` directory
+   - Import `convexTest()` from `./setup.test.ts`
+   - Import `api` from `../../src/component/_generated/api`
+   - Use `convexTest()` to create a test instance
+   - Call queries/mutations via `t.query(api.file.function, args)`
+   - Use `t.withIdentity()` for testing authenticated scenarios
+
+Example:
+```ts
 import { test, expect } from "bun:test";
+import { api } from "../../src/component/_generated/api";
+import { convexTest } from "./setup.test";
 
-test("hello world", () => {
-  expect(1).toBe(1);
+test("my query works", async () => {
+  const t = convexTest();
+  const result = await t.query(api.lib.greet, { name: "Alice" });
+  expect(result).toBe("Hello, Alice!");
 });
 ```
 
-## Frontend
+## Code Style
 
-Use HTML imports with `Bun.serve()`. Don't use `vite`. HTML imports fully support React, CSS, Tailwind.
+### Biome Configuration
+- **Indentation**: Tabs (not spaces)
+- **Quotes**: Double quotes for JavaScript/TypeScript
+- **Imports**: Auto-organized via Biome assist
+- **Ignores**: `_generated` directories are excluded from linting/formatting
 
-Server:
+### TypeScript Configuration
+- Strict mode enabled with additional checks:
+  - `noUncheckedIndexedAccess: true`
+  - `noImplicitOverride: true`
+  - `noFallthroughCasesInSwitch: true`
+- Module resolution: `bundler` mode
+- JSX: `react-jsx` (automatic runtime)
 
-```ts#index.ts
-import index from "./index.html"
+## Important Notes
 
-Bun.serve({
-  routes: {
-    "/": index,
-    "/api/users/:id": {
-      GET: (req) => {
-        return new Response(JSON.stringify({ id: req.params.id }));
-      },
-    },
-  },
-  // optional websocket support
-  websocket: {
-    open: (ws) => {
-      ws.send("Hello, world!");
-    },
-    message: (ws, message) => {
-      ws.send(message);
-    },
-    close: (ws) => {
-      // handle close
-    }
-  },
-  development: {
-    hmr: true,
-    console: true,
-  }
-})
-```
-
-HTML files can import .tsx, .jsx or .js files directly and Bun's bundler will transpile & bundle automatically. `<link>` tags can point to stylesheets and Bun's CSS bundler will bundle.
-
-```html#index.html
-<html>
-  <body>
-    <h1>Hello, world!</h1>
-    <script type="module" src="./frontend.tsx"></script>
-  </body>
-</html>
-```
-
-With the following `frontend.tsx`:
-
-```tsx#frontend.tsx
-import React from "react";
-
-// import .css files directly and it works
-import './index.css';
-
-import { createRoot } from "react-dom/client";
-
-const root = createRoot(document.body);
-
-export default function Frontend() {
-  return <h1>Hello, world!</h1>;
-}
-
-root.render(<Frontend />);
-```
-
-Then, run index.ts
-
-```sh
-bun --hot ./index.ts
-```
-
-For more information, read the Bun API docs in `node_modules/bun-types/docs/**.md`.
+- **Generated files**: Never edit files in `_generated/` directories - they are auto-generated by Convex
+- **Test files**: Place all test files in `test/component/` directory (separate from `src/component/`) to prevent Convex from bundling them during development
+- **Component name**: Currently set to `"acme"` in convex.config.ts - change this for your component
+- **Live reloading**: The `--live-component-sources` flag enables hot-reloading during development
+- **Build exclusion**: Test files are also excluded from the TypeScript build via `tsconfig.build.json`

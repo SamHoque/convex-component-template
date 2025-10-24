@@ -1,0 +1,7 @@
+[test]
+preload = ["./test/component/setup.test.ts"]
+coveragePathIgnorePatterns = "**/*.js"
+
+[serve.static]
+plugins = ["bun-plugin-tailwind"]
+env = "CONVEX_*"
