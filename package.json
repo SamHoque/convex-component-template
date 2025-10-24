@@ -1,14 +1,17 @@
 {
 	"name": "@samhoque/convex-component-template",
 	"version": "0.1.0",
-	"description": "A sharded counter component for Convex.",
+	"description": "A modern Convex component boilerplate with Bun, Biome, TypeScript, and automated testing.",
 	"license": "Apache-2.0",
 	"type": "module",
 	"keywords": [
 		"convex",
 		"component",
-		"counter",
-		"sharded-counter"
+		"template",
+		"boilerplate",
+		"bun",
+		"biome",
+		"typescript"
 	],
 	"repository": {
 		"type": "git",

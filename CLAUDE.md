@@ -14,7 +14,11 @@ This is a **Convex component template** for building reusable Convex components.
 
 ### Development
 ```sh
+bun run dev                  # Start both backend and frontend (with build watcher)
 bun run dev:backend          # Start Convex dev server with live component sources and typechecking
+bun run dev:frontend         # Start example frontend (Bun.serve with hot reload)
+bun run build                # Build TypeScript for distribution
+bun run build:watch          # Watch and rebuild on changes
 ```
 
 ### Testing
@@ -53,68 +57,129 @@ src/
     lib.ts                 # Component functions (queries, mutations)
     _generated/            # Auto-generated Convex types (gitignored)
 
+  client/                  # Client library (runs in app context, not component)
+    index.ts               # Helper class for easier component interaction
+    types.ts               # Type utilities for component API
+
+  react/                   # React hooks and components (optional)
+    index.ts               # React hooks for using the component
+
 test/
   component/               # Component tests (separate from source to avoid bundling)
     setup.test.ts          # Test setup with module auto-discovery
     *.test.ts              # Unit tests for the component
 
+  client/                  # Client library tests
+    setup.test.ts          # Test setup that registers the component
+    *.test.ts              # Unit tests for the client library
+
 example/
   convex/                  # Example app that uses the component
     convex.config.ts       # Example app configuration that imports the component
     schema.ts              # Example app schema
+    example.ts             # Example usage of the client library
     _generated/            # Auto-generated Convex types (gitignored)
+
+  src/                     # Example frontend (Bun.serve + React)
+    index.tsx              # Bun server with hot reload
+    frontend.tsx           # React entry point
+    App.tsx                # Main React component
 ```
 
 ## Architecture
 
 ### Convex Component Pattern
-This project follows the **Convex component architecture**:
+This project follows the **Convex component architecture** with a three-layer structure:
 
-1. **Component Definition** (`src/component/convex.config.ts`):
+1. **Component Layer** (`src/component/`):
    - Defines the component with `defineComponent("shardedCounter")`
-   - Exported via package.json `exports["./convex.config"]` field with `@convex-dev/component-source` condition
+   - Contains the actual Convex functions (queries, mutations, actions)
+   - Has isolated tables, file storage, and scheduled functions
+   - Exported via package.json `"./convex.config"` with `@convex-dev/component-source` condition
 
-2. **Component Usage** (`example/convex/convex.config.ts`):
-   - Example app imports the component: `import component from "@samhoque/convex-component-template/convex.config"`
-   - Uses `defineApp()` and `app.use(component)` to mount the component
+2. **Client Library Layer** (`src/client/`):
+   - Runs in the **app context** (not the component)
+   - Provides a helper class that wraps component API calls
+   - Can access `process.env` and `ctx.auth` from the app
+   - Exported via package.json `"."` (main entry point)
+   - Example: `ShardedCounter` class with `.add()` and `.count()` methods
 
-3. **Package Exports** (`package.json`):
-   - `"./convex.config"` export points to `src/component/convex.config.ts` (component source)
-   - Uses `@convex-dev/component-source` condition for dev mode with live reloading
+3. **React Layer** (`src/react/`):
+   - Optional React hooks and components
+   - Uses the client library internally
+   - Provides optimistic updates and loading states
+   - Exported via package.json `"./react"`
+   - Example: `useShardedCounter()` hook
+
+**Usage Flow**:
+```typescript
+// 1. App mounts the component (example/convex/convex.config.ts)
+import component from "@samhoque/convex-component-template/convex.config"
+app.use(component)
+
+// 2. App creates client wrapper (example/convex/example.ts)
+import { ShardedCounter } from "@samhoque/convex-component-template"
+const counter = new ShardedCounter(components.shardedCounter)
+export const { add, count } = counter.api()
+
+// 3. React component uses the hook (example/src/App.tsx)
+import { useShardedCounter } from "@samhoque/convex-component-template/react"
+const { count, add } = useShardedCounter(api.example, "myCounter")
+```
 
 ### Testing Pattern
 This project uses `convex-test` with Bun's test runner. **Tests are kept separate from the component source** to prevent Convex from trying to bundle them during development.
 
-1. **Test Setup** (`test/component/setup.test.ts`):
-   - Auto-discovers all `.ts` files from `src/component/` using `Bun.Glob`
-   - Creates a `modules` map for convex-test that includes the component files
-   - Exports a `convexTest()` helper function
-   - Located in `test/` directory to avoid bundling by Convex
+#### Component Tests (`test/component/`)
+Tests the component functions in isolation.
 
-2. **Preloading** (`bunfig.toml`):
-   - Configures Bun to preload `test/component/setup.test.ts`
-   - Ignores `.js` files from coverage
+**Setup** (`test/component/setup.test.ts`):
+- Auto-discovers all `.ts` files from `src/component/` using `Bun.Glob`
+- Creates a `modules` map for convex-test
+- Exports a `convexTest()` helper function
+- Preloaded by Bun (configured in `bunfig.toml`)
 
-3. **Writing Tests**:
-   - Place test files in `test/component/` directory
-   - Import `convexTest()` from `./setup.test.ts`
-   - Import `api` from `../../src/component/_generated/api`
-   - Use `convexTest()` to create a test instance
-   - Call queries/mutations via `t.query(api.file.function, args)`
-   - Use `t.withIdentity()` for testing authenticated scenarios
-
-Example:
+**Example**:
 ```ts
 import { test, expect } from "bun:test";
 import { api } from "../../src/component/_generated/api";
 import { convexTest } from "./setup.test";
 
-test("my query works", async () => {
+test("component function works", async () => {
   const t = convexTest();
   const result = await t.query(api.lib.greet, { name: "Alice" });
   expect(result).toBe("Hello, Alice!");
 });
 ```
+
+#### Client Library Tests (`test/client/`)
+Tests the client library that wraps the component. This is more complex because it requires **registering the component**.
+
+**Setup** (`test/client/setup.test.ts`):
+- Auto-discovers client test files from `test/client/`
+- Auto-discovers component files from `src/component/`
+- Exports `initConvexTest()` that creates a test instance and registers the component
+- Exports a mock `components` object for type-safe testing
+
+**Example**:
+```ts
+import { test, expect } from "bun:test";
+import { ShardedCounter } from "../../src/client/index.js";
+import { components, initConvexTest } from "./setup.test.js";
+
+test("client library works", async () => {
+  const t = initConvexTest();
+  const counter = new ShardedCounter(components.shardedCounter);
+
+  await t.run(async (ctx) => {
+    await counter.add(ctx, "test");
+    const count = await counter.count(ctx, "test");
+    expect(count).toBe(1);
+  });
+});
+```
+
+**Key difference**: Client tests use `t.registerComponent()` to mount the component within the test environment, simulating the real app usage pattern.
 
 ## Code Style
 
