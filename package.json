@@ -3,7 +3,6 @@
 	"version": "0.1.0",
 	"description": "A sharded counter component for Convex.",
 	"license": "Apache-2.0",
-	"module": "index.ts",
 	"type": "module",
 	"keywords": [
 		"convex",
@@ -13,12 +12,12 @@
 	],
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/samhoque/convex-orgs-2.git"
+		"url": "git+https://github.com/samhoque/convex-component-template.git"
 	},
 	"bugs": {
-		"url": "https://github.com/samhoque/convex-orgs-2/issues"
+		"url": "https://github.com/samhoque/convex-component-template/issues"
 	},
-	"homepage": "https://github.com/samhoque/convex-orgs-2#readme",
+	"homepage": "https://github.com/samhoque/convex-component-template#readme",
 	"exports": {
 		"./package.json": "./package.json",
 		".": {

@@ -2,7 +2,7 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "convex-orgs-2",
+      "name": "convex-component-template",
       "dependencies": {
         "bun-plugin-tailwind": "^0.1.2",
         "react-dom": "^19.2.0",
