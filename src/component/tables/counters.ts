@@ -1,8 +1,8 @@
-import { defineTable } from "convex/server";
-import { v } from "convex/values";
+import { z } from "zod";
+import { zodTable } from "zodvex";
 
-export const Counters = defineTable({
-	name: v.string(),
-	value: v.number(),
-	shard: v.number(),
+export const Counters = zodTable("counters", {
+	name: z.string(),
+	value: z.number(),
+	shard: z.number(),
 });

@@ -86,12 +86,15 @@
 		"chokidar-cli": "^3.0.0",
 		"commitlint-config-gitmoji": "^2.3.1",
 		"convex": "^1.28.0",
+		"convex-helpers": "^0.1.104",
 		"convex-test": "^0.0.38",
 		"lefthook": "^2.0.0",
 		"npm-run-all": "^4.1.5",
 		"pkg-pr-new": "^0.0.60",
 		"react": "^19.2.0",
 		"react-dom": "^19.2.0",
-		"tailwindcss": "^4.1.16"
+		"tailwindcss": "^4.1.16",
+		"zod": "^4.1.12",
+		"zodvex": "^0.2.3"
 	}
 }

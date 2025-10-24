@@ -14,8 +14,6 @@ export class ShardedCounter<Shards extends Record<string, number>> {
 		public options?: {
 			shards?: Shards;
 			defaultShards?: number;
-			// Common parameters:
-			// logLevel
 		},
 	) {}
 

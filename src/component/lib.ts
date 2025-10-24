@@ -1,13 +1,13 @@
-import { v } from "convex/values";
-import { mutation, query } from "./_generated/server.js";
+import { z } from "zod";
+import { zm, zq } from "../utils.js";
 
-export const add = mutation({
-	args: {
-		name: v.string(),
-		count: v.number(),
-		shards: v.optional(v.number()),
-	},
-	returns: v.null(),
+export const add = zm({
+	args: z.object({
+		name: z.string(),
+		count: z.number(),
+		shards: z.number().optional(),
+	}),
+	returns: z.void(),
 	handler: async (ctx, args) => {
 		const shard = Math.floor(Math.random() * (args.shards ?? 1));
 		const counter = await ctx.db
@@ -28,9 +28,9 @@ export const add = mutation({
 	},
 });
 
-export const count = query({
-	args: { name: v.string() },
-	returns: v.number(),
+export const count = zq({
+	args: { name: z.string() },
+	returns: z.number(),
 	handler: async (ctx, args) => {
 		const counters = await ctx.db
 			.query("counters")
