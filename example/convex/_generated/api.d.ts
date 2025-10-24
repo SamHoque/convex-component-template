@@ -39,7 +39,7 @@ export declare const internal: FilterApi<
 >;
 
 export declare const components: {
-  acme: {
+  shardedCounter: {
     lib: {
       add: FunctionReference<
         "mutation",
