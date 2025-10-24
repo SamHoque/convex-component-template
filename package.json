@@ -14,6 +14,11 @@
 			"@convex-dev/component-source": "./src/component/convex.config.ts",
 			"types": "./dist/component/convex.config.d.ts",
 			"default": "./dist/component/convex.config.js"
+		},
+		"./react": {
+			"@convex-dev/component-source": "./src/react/index.ts",
+			"types": "./dist/react/index.d.ts",
+			"default": "./dist/react/index.js"
 		}
 	},
 	"scripts": {

@@ -1,10 +1,12 @@
-import { useMutation, useQuery } from "convex/react";
+import { useShardedCounter } from "@slapinc/convex-component-template/react";
 import { api } from "../convex/_generated/api";
 import "./index.css";
 
 export function App() {
-	const count = useQuery(api.example.count, { name: "accomplishments" });
-	const add = useMutation(api.example.add);
+	const { count, add, isLoading } = useShardedCounter(
+		api.example,
+		"accomplishments",
+	);
 
 	return (
 		<div className="min-h-screen bg-gray-50 w-full flex items-center justify-center">
@@ -29,8 +31,8 @@ export function App() {
 							</div>
 							<button
 								type="button"
-								onClick={() => add({ name: "accomplishments" })}
-								disabled={count === undefined}
+								onClick={() => add()}
+								disabled={isLoading}
 								className="bg-blue-600 text-white font-medium px-6 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 							>
 								Increment Counter
