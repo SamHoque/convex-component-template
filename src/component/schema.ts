@@ -1,10 +1,6 @@
-import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import { defineSchema } from "convex/server";
+import { Counters } from "./tables/counters";
 
 export default defineSchema({
-	counters: defineTable({
-		name: v.string(),
-		value: v.number(),
-		shard: v.number(),
-	}).index("name", ["name", "shard"]),
+	counters: Counters.index("name", ["name", "shard"]),
 });
