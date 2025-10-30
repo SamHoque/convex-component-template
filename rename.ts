@@ -1,86 +1,178 @@
-import { describe, expect, test } from "bun:test";
-import { convexTest } from "../setup.test.ts";
+#!/usr/bin/env bun
 
-describe("organizations table schema", () => {
-	test("should create and retrieve organization", async () => {
-		const t = convexTest();
-		const now = Date.now();
+/**
+ * Convex Component Setup Script
+ * Run: bun rename.ts
+ *
+ * Purpose:
+ * - Prompt user for component info
+ * - Generate name variants
+ * - Replace identifiers across files
+ * - Optionally delete itself after setup
+ */
 
-		const orgId = await t.run(async (ctx) => {
-			return await ctx.db.insert("organizations", {
-				name: "Test Organization",
-				color: "#FF5733",
-				createdBy: "user_123",
-				createdAt: now,
-			});
-		});
+import { basename } from "node:path";
+import { Glob } from "bun";
 
-		const org = await t.run(async (ctx) => {
-			return await ctx.db.get(orgId);
-		});
+// -----------------------------
+// 🔤 Case Utilities
+// -----------------------------
+const Case = {
+	pascal: (s: string) =>
+		s
+			.replaceAll(/[-_\s]+(.)?/g, (_, c) => c?.toUpperCase() || "")
+			.replace(/^./, (c) => c.toUpperCase()),
 
-		expect(org?.name).toBe("Test Organization");
-		expect(org?.color).toBe("#FF5733");
-		expect(org?.createdBy).toBe("user_123");
-		expect(org?.createdAt).toBe(now);
-	});
+	camel(s: string) {
+		const p = this.pascal(s);
+		return p === p.toUpperCase()
+			? p.toLowerCase()
+			: p[0]?.toLowerCase() + p.slice(1);
+	},
 
-	test("should support optional image and metadata fields", async () => {
-		const t = convexTest();
+	kebab: (s: string) =>
+		s
+			.replaceAll(/([a-z])([A-Z])/g, "$1-$2")
+			.replaceAll(/[-_\s]+/g, "-")
+			.toLowerCase(),
 
-		const storageId = await t.run(async (ctx) => {
-			return await ctx.storage.store(new Blob(["test"]));
-		});
+	snake: (s: string) =>
+		s
+			.replaceAll(/([a-z])([A-Z])/g, "$1_$2")
+			.replaceAll(/[-_\s]+/g, "_")
+			.toLowerCase(),
 
-		const orgId = await t.run(async (ctx) => {
-			return await ctx.db.insert("organizations", {
-				name: "Test Org",
-				color: "#000000",
-				createdBy: "user_123",
-				createdAt: Date.now(),
-				image: storageId,
-				metadata: { test: "data" } as any,
-			});
-		});
+	space: (s: string) =>
+		s
+			.replaceAll(/([a-z])([A-Z])/g, "$1 $2")
+			.replaceAll(/[-_]+/g, " ")
+			.toLowerCase(),
 
-		const org = await t.run(async (ctx) => {
-			return await ctx.db.get(orgId);
-		});
+	title(s: string) {
+		if (s === s.toUpperCase()) return s;
+		return this.space(s)
+			.split(" ")
+			.map((w) => w[0]?.toUpperCase() + w.slice(1))
+			.join(" ");
+	},
+};
 
-		expect(org?.image).toBe(storageId);
-		expect(org?.metadata).toEqual({ test: "data" });
-	});
+// -----------------------------
+// 🧠 Prompt Utilities
+// -----------------------------
+// Create a single shared async iterator to avoid "ReadableStream is locked" error
+const stdinIterator = console[Symbol.asyncIterator]();
 
-	test("should update and delete organizations", async () => {
-		const t = convexTest();
+const ask = async (msg: string, def = ""): Promise<string> => {
+	process.stdout.write(`${msg}${def ? ` [${def}]` : ""}: `);
+	const result = await stdinIterator.next();
+	return result.value?.trim() || def;
+};
 
-		const orgId = await t.run(async (ctx) => {
-			return await ctx.db.insert("organizations", {
-				name: "Original",
-				color: "#AAAAAA",
-				createdBy: "user_123",
-				createdAt: Date.now(),
-			});
-		});
+const confirm = async (msg: string) => {
+	process.stdout.write(`${msg} (y/N): `);
+	const result = await stdinIterator.next();
+	return result.value ? /^y(es)?$/i.test(result.value.trim()) : false;
+};
 
-		await t.run(async (ctx) => {
-			await ctx.db.patch(orgId, { name: "Updated" });
-		});
+// -----------------------------
+// ⚙️ Main
+// -----------------------------
+const dir = basename(import.meta.dir);
+console.log("🚀 Convex Component Setup\n");
 
-		const updated = await t.run(async (ctx) => {
-			return await ctx.db.get(orgId);
-		});
+const name = await ask("Enter your component name (e.g. document search)", dir);
+if (!name) throw new Error("Component name is required.");
 
-		expect(updated?.name).toBe("Updated");
+const pkg = await ask(`NPM package name (e.g. @samhoque/${Case.kebab(name)})`);
+const repo = await ask(`GitHub repository (e.g. samhoque/${Case.kebab(name)})`);
+if (!pkg || !repo)
+	throw new Error("NPM package and repository names are required.");
 
-		await t.run(async (ctx) => {
-			await ctx.db.delete(orgId);
-		});
+// Generate case variants
+const cases = {
+	pascal: Case.pascal(name),
+	camel: Case.camel(name),
+	kebab: Case.kebab(name),
+	snake: Case.snake(name),
+	space: Case.space(name),
+	title: Case.title(name),
+};
 
-		const deleted = await t.run(async (ctx) => {
-			return await ctx.db.get(orgId);
-		});
+console.log("\n🧩 Name Variants:");
+for (const [k, v] of Object.entries(cases)) {
+	console.log(`  ${k}: ${v}`);
+}
+console.log(`  npm: ${pkg}\n  repo: ${repo}\n`);
 
-		expect(deleted).toBeNull();
-	});
-});
+// -----------------------------
+// 🧾 Update package.json
+// -----------------------------
+const pkgFile = Bun.file("package.json");
+const pkgJson = await pkgFile.json();
+if (pkgJson.name !== pkg) {
+	pkgJson.name = pkg;
+	await Bun.write("package.json", `${JSON.stringify(pkgJson, null, 2)}\n`);
+	console.log(`📦 Updated package.json name → ${pkg}`);
+}
+
+// -----------------------------
+// 🧬 Replacement Map
+// -----------------------------
+const replacements: [string, string][] = [
+	// Package and repository
+	["@samhoque/convex-component-template", pkg],
+	["samhoque/convex-component-template", repo],
+	["OWNER/REPO", repo],
+	["@samhoque%2Fconvex-component-template", pkg.replace("/", "%2F")],
+
+	// Component name variants
+	["ShardedCounter", cases.pascal],
+	["shardedCounter", cases.camel],
+	["sharded-counter", cases.kebab],
+	["sharded_counter", cases.snake],
+	["sharded counter", cases.space],
+	["Sharded Counter", cases.title],
+];
+
+// -----------------------------
+// 🔄 File Processing
+// -----------------------------
+const glob = new Glob("**/*");
+let updated = 0;
+
+for await (const path of glob.scan({ cwd: ".", onlyFiles: true })) {
+	if (/node_modules|\.git|\.cursor|_generated|rename\.(mjs|ts)/.test(path))
+		continue;
+
+	try {
+		let content = await Bun.file(path).text();
+		let changed = false;
+		for (const [from, to] of replacements) {
+			if (content.includes(from)) {
+				content = content.replaceAll(from, to);
+				changed = true;
+			}
+		}
+		if (changed) {
+			await Bun.write(path, content);
+			updated++;
+		}
+	} catch {}
+}
+
+console.log(`✅ Updated ${updated} files.`);
+
+// -----------------------------
+// 🧹 Optional Self-Delete
+// -----------------------------
+if (await confirm("Delete rename.ts now?")) {
+	try {
+		await Bun.file("./rename.ts").delete();
+		console.log("🗑️  Script deleted.");
+	} catch (e) {
+		console.error("❌ Failed to delete script:", e);
+	}
+} else console.log("📝 Script retained.");
+
+console.log("\n✨ Setup complete! Check README.md for next steps.");
