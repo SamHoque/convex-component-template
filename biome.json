@@ -7,7 +7,14 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"includes": ["**", "!**/_generated", "!dist"]
+		"includes": [
+			"**",
+			"!**/_generated",
+			"!dist",
+			"!example/src/components",
+			"!example/src/hooks",
+			"!example/src/lib"
+		]
 	},
 	"formatter": {
 		"enabled": true,

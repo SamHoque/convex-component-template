@@ -1,6 +1,18 @@
 import { useShardedCounter } from "@samhoque/convex-component-template/react";
 import { api } from "../convex/_generated/api";
 import "./index.css";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function App() {
 	const { count, add, isLoading } = useShardedCounter(
@@ -9,51 +21,45 @@ export function App() {
 	);
 
 	return (
-		<div className="min-h-screen bg-gray-50 w-full flex items-center justify-center">
-			<div className="container mx-auto px-4">
-				<div className="w-full max-w-md mx-auto">
-					<div className="bg-white rounded-lg shadow border border-gray-200 p-8">
-						<div className="text-center mb-8">
-							<h1 className="text-3xl font-bold text-gray-900 mb-2">
-								Sharded Counter
-							</h1>
-							<p className="text-gray-600 text-sm">
-								Powered by Convex Components
-							</p>
-						</div>
+		<main className="min-h-screen bg-background flex items-center justify-center p-4">
+			<Card className="w-full max-w-md">
+				<CardHeader className="text-center">
+					<CardTitle className="text-3xl">Sharded Counter</CardTitle>
+					<CardDescription>Powered by Convex Components</CardDescription>
+				</CardHeader>
 
-						<div className="bg-gray-50 rounded-lg p-8 mb-6 text-center border border-gray-200">
-							<div className="text-gray-500 text-sm uppercase tracking-wider mb-2">
-								Accomplishments
-							</div>
-							<div className="text-5xl font-bold text-gray-900 mb-4">
-								{count ?? "..."}
-							</div>
-							<button
-								type="button"
-								onClick={() => add()}
-								disabled={isLoading}
-								className="bg-blue-600 text-white font-medium px-6 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-							>
-								Increment Counter
-							</button>
-						</div>
+				<CardContent className="space-y-6 text-center">
+					<Badge variant="secondary">Accomplishments</Badge>
+					{count === undefined ? (
+						<Skeleton className="h-4 w-4 mx-auto" />
+					) : (
+						<p className="text-5xl font-bold">{count}</p>
+					)}
+					<Button
+						type="button"
+						onClick={() => add()}
+						disabled={isLoading}
+						size="lg"
+						className="w-full"
+					>
+						Increment Counter
+					</Button>
 
-						<div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
-							<p className="text-sm text-gray-700 text-center">
-								<code className="text-blue-600 font-mono text-xs">
-									example/convex/example.ts
-								</code>
-								<br />
-								<span className="text-gray-500 text-xs">
-									Check out the code to see all available features
-								</span>
-							</p>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
+					<Separator />
+
+					<Alert>
+						<AlertDescription className="text-center space-y-2">
+							<code className="font-mono text-xs block">
+								example/convex/example.ts
+							</code>
+							<span className="text-xs block">
+								Check out the code to see all available features
+							</span>
+						</AlertDescription>
+					</Alert>
+				</CardContent>
+			</Card>
+		</main>
 	);
 }
 
