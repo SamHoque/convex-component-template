@@ -84,8 +84,11 @@ console.log("🚀 Convex Component Setup\n");
 const name = await ask("Enter your component name (e.g. document search)", dir);
 if (!name) throw new Error("Component name is required.");
 
-const pkg = await ask(`NPM package name (e.g. @samhoque/${Case.kebab(name)})`);
-const repo = await ask(`GitHub repository (e.g. samhoque/${Case.kebab(name)})`);
+const defaultPkg = `@samhoque/${Case.kebab(name)}`;
+const defaultRepo = `samhoque/${Case.kebab(name)}`;
+
+const pkg = await ask("NPM package name", defaultPkg);
+const repo = await ask("GitHub repository", defaultRepo);
 if (!pkg || !repo)
 	throw new Error("NPM package and repository names are required.");
 
