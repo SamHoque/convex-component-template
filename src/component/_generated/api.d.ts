@@ -9,6 +9,7 @@
  */
 
 import type * as lib from "../lib.js";
+import type * as tables_counters from "../tables/counters.js";
 
 import type {
   ApiFromModules,
@@ -26,6 +27,7 @@ import type {
  */
 declare const fullApi: ApiFromModules<{
   lib: typeof lib;
+  "tables/counters": typeof tables_counters;
 }>;
 export type Mounts = {
   lib: {
